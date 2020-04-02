@@ -1,13 +1,45 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useReducer } from 'react'
 import { db, provider, auth } from '../../firebase'
+import { GroupList } from './group-list.component'
+
+const groupListInitial = []
+const groupReducer = (state = groupListInitial, action) => {
+  if (action.type === 'INIT_GROUP_LIST') {
+    // do something
+    return action.data
+  } else {
+    return state
+  }
+}
 
 const GroupListContainer = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const groupCollection = db.collection('group')
 
+  const [groupList, updateGroupList] = useReducer(groupReducer, groupListInitial)
+
   useEffect(() => {
     (async () => {
-      const isLoggedIn = checkAuthenticationState()
+      checkAuthenticationState()
+      const groupData = await groupCollection
+        .get()
+      let data = []
+      groupData.forEach(doc => {
+        console.log(doc.id, doc.data())
+        data = [...data, {
+          id: doc.id,
+          ...doc.data()
+        }]
+      })
+
+      updateGroupList({
+        type: 'INIT_GROUP_LIST',
+        data
+      })
+
+      console.log(groupData, data)
+
+      // Read group data from firestore
       // test adding a group
       // groupCollection.add({
       //   message: 'Tam is very happy'
@@ -69,6 +101,7 @@ const GroupListContainer = () => {
     <div>
       {!isLoggedIn && <button onClick={showZaPopup}>Log me in dude</button>}
       {isLoggedIn && <button onClick={hideZaPopup}>Log me out, or else!</button>}
+      {isLoggedIn && <GroupList data={groupList} />}
     </div>
   )
 }
