@@ -13,3 +13,7 @@ const firebaseConfig = {
 f.initializeApp(firebaseConfig)
 
 export const db = f.firestore()
+export const auth = f.auth
+export const provider = {
+  github: new f.auth.GithubAuthProvider()
+}
